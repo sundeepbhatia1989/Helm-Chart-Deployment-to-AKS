@@ -1,0 +1,55 @@
+Helm Chart Deployment (Nodejs application)to Azure Kubernetes Service AKS
+https://www.youtube.com/watch?v=wuHpqRJMh6Y
+
+1.git clone C:\XXXXXXy\AKS\Helm Chart Deployment Nodejs app to AKS\dev-spaces-master\samples\nodejs\getting-started\webfrontend
+2. create Dockerfile (for Nodejs App)
+# Use an official Node.js runtime as a parent image
+FROM node:14-alpine
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy the package.json and package-lock.json files to the container
+COPY package*.json ./
+
+# Install app dependencies
+RUN npm install
+
+# Copy the rest of the application code to the container
+COPY . .
+
+# Set the environment variable for the app
+ENV NODE_ENV=production
+
+# Expose port 8080 for the application to listen on
+EXPOSE 8080
+
+# Start the application
+CMD [ "npm", "start" ]
+
+3. To push this Dockerfile to an Azure Container Registry (ACR), follow these steps:
+
+az login
+az account set --subscription <subscription-id>
+
+az group create --name <resource-group-name> --location <location>
+az acr create --resource-group <resource-group-name> --name <acr-name> --sku Basic
+
+az account set --subscription e61c9c1e-1f3b-4a27-bd84-1631b0c60c12
+az aks get-credentials --resource-group tuq2kor --name testingaks1
+
+
+docker login $ACR_LOGIN_SERVER -u tuq2koracr -password-stdin  aTASL5z0Lp6me6CbQYc3ry+o4K/X14LbyIvP+pHQms+ACRDcD/C5			#ACR at portal
+export ACR_LOGIN_SERVER=tuq2koracr.azurecr.io
+docker login $ACR_LOGIN_SERVER -u tuq2koracr -p aTASL5z0Lp6me6CbQYc3ry+o4K/X14LbyIvP+pHQms+ACRDcD/C5
+az acr build --image webfrontend:v1 --registry tuq2koracr --file Dockerfile .
+
+helm create webfrontend
+helm install webfrontend webfrontend/
+kubectl get services
+curl http://<IP address>:80/
+
+
+
+#docker build -t <acr-name>.azurecr.io/<image-name>:<tag> .
+#az acr login --name <acr-name>
